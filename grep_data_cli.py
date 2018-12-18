@@ -10,7 +10,7 @@ from grep_data import *
 
 COOKIE_FILE = os.path.join(tempfile.gettempdir(), "elearning_cookies.pkl")
 TESTID_RE = re.compile(r"TestID=(\d+)")
-NUMONLY_RE = re.compile(r"^\d+$")
+NUMONLY_RE = re.compile(r"^(\d+)$")
 INVALTOK_RE = re.compile(r"[<>:;,?\"*|/\\]+")
 
 Cookie = load_cookies(COOKIE_FILE)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
             if NUMONLY_RE.match(args.testpaper):
                 paper, el, ec = get_all_data(args.testpaper, Cookie)
             elif TESTID_RE.search(args.testpaper):
-                match = TESTID_RE.search(args.testpaper)
+                match = TESTID_RE.search(args.testpaper).expand(r"\1")
                 paper, el, ec = get_all_data(match.group(), Cookie)
             else:
                 raise ValueError(

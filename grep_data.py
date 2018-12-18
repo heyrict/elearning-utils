@@ -9,6 +9,8 @@ import requests
 TEST_IF = "http://elearning.njmu.edu.cn/G2S/DataProvider/CourseLive/Test/MarkingProvider.aspx/Test_Get"
 PAPERCARD_IF = "http://elearning.njmu.edu.cn/G2S/DataProvider/CourseLive/Test/MarkingProvider.aspx/PaperCardInfo_Get"
 MARKINGPAPER_IF = "http://elearning.njmu.edu.cn/G2S/DataProvider/CourseLive/Test/MarkingProvider.aspx/MarkingPaperInfo_Get"
+TESTTEMPSAVE_IF = "http://elearning.njmu.edu.cn/G2S/DataProvider/CourseLive/Test/MarkingProvider.aspx/TestTempSave_Upd"
+TESTSUBMIT_IF = "http://elearning.njmu.edu.cn/G2S/DataProvider/CourseLive/Test/MarkingProvider.aspx/Test_Submit"
 LOGIN_IF = "http://elearning.njmu.edu.cn/Portal/Ashx/Login.ashx"
 
 
@@ -49,6 +51,9 @@ def parse_cookies(cookies_str):
 
 
 def login(username, password):
+    username = str(username)
+    password = str(password)
+
     password = hex_md5(password)
     rp = requests.post(
         LOGIN_IF,
@@ -59,6 +64,10 @@ def login(username, password):
             "IsRecord": "true",
             "action": "toLogin",
         })
+
+    if rp.status_code != 200:
+        raise requests.exceptions.ConnectionError(
+            "Server Error: %s" % rp.status_code)
 
     if rp.text == "False":
         raise AuthenticationError(
@@ -77,6 +86,23 @@ def get_test_data(testID, Cookie):
             "CheckUserID": -1
         },
         cookies=get_cookies(Cookie))
+
+
+def upload_answer(testID, answer, Cookie):
+    return requests.post(
+        TESTTEMPSAVE_IF,
+        json={
+            "TestID": testID,
+            "Answer": answer,
+        },
+        cookies=get_cookies(Cookie))
+
+
+def submit_answer(testID, C):
+    return requests.post(
+        TESTSUBMIT_IF, json={
+            "TestID": testID,
+        }, cookies=get_cookies(Cookie))
 
 
 def get_papercard_data(paperID, Cookie):
