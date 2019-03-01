@@ -24,8 +24,6 @@ class LoginPage(Page):
         self.msg = tk.StringVar()
         self.un = tk.StringVar()
         self.pw = tk.StringVar()
-        self.un.set("16010101")
-        self.pw.set("16010101")
 
         formFrame = tk.Frame(self)
 
@@ -94,22 +92,26 @@ class FetchPage(Page):
     def handleFetchButtonClick(self):
         testId = self.testId.get()
 
+        self.setMessage("Now Loading...")
         if NUMONLY_RE.match(testId):
             match = testId
-            paper, el, ec = get_all_data(testId, self.cookie)
         elif TESTID_RE.search(testId):
             match = TESTID_RE.search(testId).expand(r"\1")
-            paper, el, ec = get_all_data(match, self.cookie)
         else:
             self.setMessage("Unrecognizable testpaper argument: %s" % testId)
             return
-        res = parse_result(el, ec)
-        txt = render_to_text(res)
-        self.setMessage("TestID %(testid)s: [%(papername)s]\n\n%(txt)s" % {
-            'testid': match,
-            'papername': paper['Papername'],
-            'txt': txt,
-        })
+
+        try:
+            paper, el, ec = get_all_data(match, self.cookie)
+            res = parse_result(el, ec)
+            txt = render_to_text(res)
+            self.setMessage("TestID %(testid)s: [%(papername)s]\n\n%(txt)s" % {
+                'testid': match,
+                'papername': paper['Papername'],
+                'txt': txt,
+            })
+        except Exception as e:
+            self.setMessage(str(e))
 
 
 class MainView(tk.Frame):

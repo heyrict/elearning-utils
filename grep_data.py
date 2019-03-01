@@ -13,6 +13,13 @@ TESTTEMPSAVE_IF = "http://elearning.njmu.edu.cn/G2S/DataProvider/CourseLive/Test
 TESTSUBMIT_IF = "http://elearning.njmu.edu.cn/G2S/DataProvider/CourseLive/Test/MarkingProvider.aspx/Test_Submit"
 LOGIN_IF = "http://elearning.njmu.edu.cn/Portal/Ashx/Login.ashx"
 
+UNPUBLISHED_MSG = "Error! The results are not published yet!"
+
+
+class ResultsUnpublishedError(Exception):
+    def __init__(self, *args, **kwargs):
+        super(AuthenticationError, self).__init__(*args, **kwargs)
+
 
 class AuthenticationError(Exception):
     def __init__(self, *args, **kwargs):
@@ -204,7 +211,7 @@ def get_markingpaper_data(testID, paperID, Cookie):
         cookies=get_cookies(Cookie))
 
 
-def get_all_data(testID, Cookie):
+def get_all_data(testID, Cookie, ignore_unpublished=False):
     """
     Shortcut for getting all required data (exercise list & choices)
     from paperID and cookies. Returns (exerciselist, ExerciseChoices).
@@ -214,6 +221,9 @@ def get_all_data(testID, Cookie):
     get_markingpaper_data
     """
     test_data = json_or_error(get_test_data(testID, Cookie))
+    if not test_data['d']['IsSend'] and not ignore_unpublished:
+        raise Exception(UNPUBLISHED_MSG)
+
     paperID = test_data['d']['PaperID']
     all_data = json_or_error(get_markingpaper_data(testID, paperID,
                                                    Cookie))['d']
