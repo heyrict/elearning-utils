@@ -5,6 +5,7 @@ from md5 import hex_md5
 
 import pandas as pd
 import requests
+from bs4 import BeautifulSoup as bs
 
 TEST_IF = "http://elearning.njmu.edu.cn/G2S/DataProvider/CourseLive/Test/MarkingProvider.aspx/Test_Get"
 PAPERCARD_IF = "http://elearning.njmu.edu.cn/G2S/DataProvider/CourseLive/Test/MarkingProvider.aspx/PaperCardInfo_Get"
@@ -268,7 +269,8 @@ def render_to_text(result):
         question_layout % {
             "trueansw": l["TrueChoices"],
             "id": l["ExerciseID"],
-            "ques": l["Conten"].strip(),
+            "ques": "".join(t for t in bs(l["Conten"], "lxml").find_all(text=True)\
+                            if t.parent.name.upper() != 'STYLE').strip(),
             "choices": "".join(l["Choices"])
         }, axis=1))
     return output
