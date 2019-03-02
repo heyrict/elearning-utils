@@ -257,20 +257,23 @@ def parse_result(el, ec):
 
 
 def render_to_text(result):
+    def remove_style(html):
+        return "".join(t for t in bs(html, "lxml").find_all(text=True)\
+                       if t.parent.name.upper() != "STYLE").strip()
+
     output = ""
     question_layout = "[%(trueansw)s]%(id)s. %(ques)s\n%(choices)s\n"
     choices_layout = "%(name)s. %(content)s\n"
 
     result["Choices"] = result["Choices"].map(lambda choices_dict: [
-        (choices_layout % {"name": k, "content": v.strip()})
+        (choices_layout % {"name": k, "content": remove_style(v).strip()})
         for k, v in choices_dict.items()
     ])
     output = "".join(result.apply(lambda l:
         question_layout % {
             "trueansw": l["TrueChoices"],
             "id": l["ExerciseID"],
-            "ques": "".join(t for t in bs(l["Conten"], "lxml").find_all(text=True)\
-                            if t.parent.name.upper() != 'STYLE').strip(),
+            "ques": remove_style(l["Conten"]),
             "choices": "".join(l["Choices"])
         }, axis=1))
     return output
